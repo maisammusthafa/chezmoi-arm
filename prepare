@@ -1,0 +1,39 @@
+#!/bin/bash
+
+PACKAGE='chezmoi'
+MAINTAINER='Maisam Musthafa <maisam.musthafa@gmail.com>'
+ARCHITECTURE='armhf'
+DESCRIPTION='Manage your dotfiles across multiple machines'
+
+RESPONSE=$(curl -s "https://api.github.com/repos/twpayne/chezmoi/releases/latest")
+
+VERSION=$(sed -n "s/\(.*tag_name.*\"v\)\(.*\)\",/\2/p" <<< "$RESPONSE")
+URL=$(sed -n "s/\(browser_download_url.*\)\(https.*linux_arm.tar.gz\)/\2/p" <<< "$RESPONSE" | xargs -n1)
+SOURCE=$(basename "$URL")
+
+curl -LC - -o "$SOURCE" "$URL"
+
+mkdir -p \
+    src \
+    $PACKAGE/DEBIAN \
+    $PACKAGE/usr/bin \
+    $PACKAGE/usr/share/bash-completion/completions \
+    $PACKAGE/usr/share/fish/completions \
+    $PACKAGE/usr/share/zsh/vendor-completions
+
+tar xvzf "$SOURCE" -C src
+
+mv "src/chezmoi" "$PACKAGE/usr/bin/"
+mv "src/completions/chezmoi-completion.bash" "$PACKAGE/usr/share/bash-completion/completions/chezmoi"
+mv "src/completions/chezmoi.fish" "$PACKAGE/usr/share/fish/completions/chezmoi.fish"
+mv "src/completions/chezmoi.zsh" "$PACKAGE/usr/share/zsh/vendor-completions/_chezmoi"
+
+rm -rf src
+
+cat > $PACKAGE/DEBIAN/control << EOL
+Package: $PACKAGE
+Maintainer: $MAINTAINER
+Architecture: $ARCHITECTURE
+Version: $VERSION
+Description: $DESCRIPTION
+EOL

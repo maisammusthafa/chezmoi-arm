@@ -11,7 +11,7 @@ VERSION=$(sed -n "s/\(.*tag_name.*\"v\)\(.*\)\",/\2/p" <<< "$RESPONSE")
 URL=$(sed -n "s/\(browser_download_url.*\)\(https.*linux_arm.tar.gz\)/\2/p" <<< "$RESPONSE" | xargs -n1)
 SOURCE=$(basename "$URL")
 
-curl -LC - -o "$SOURCE" "$URL"
+wget -cO "$SOURCE" "$URL"
 
 mkdir -p \
     src \
